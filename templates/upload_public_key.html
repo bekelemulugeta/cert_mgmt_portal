@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Upload Key{% endblock %}
+
+{% block content %}
+
+<h2 class="mb-4">🗝️ Upload Public Key</h2>
+
+{% if error %}
+<div class="alert alert-danger">{{ error }}</div>
+{% endif %}
+{% if success %}
+<div class="alert alert-success">{{ success }}</div>
+{% endif %}
+
+<form method="POST" class="mb-4">
+    <div class="mb-3">
+        <label for="app_id" class="form-label">Select Application:</label>
+        <select name="app_id" id="app_id" class="form-select" required>
+            <option value="">-- Select Application --</option>
+            {% for app in apps %}
+            <option value="{{ app.app_id }}"
+                {% if request.form.app_id == app.app_id|string %}selected{% endif %}>
+                {{ app.app_name }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label for="public_key" class="form-label">Public Key:</label>
+        <textarea name="public_key" id="public_key" rows="6" class="form-control" required>{{ request.form.public_key }}</textarea>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Upload Key</button>
+</form>
+
+{% endblock %}

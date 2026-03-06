@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block title %}Edit Application{% endblock %}
+
+{% block content %}
+<h2>Edit Application</h2>
+<form method="POST">
+    <div class="mb-3">
+        <label>Name</label>
+        <input type="text" name="name" class="form-control" value="{{ app.app_name }}" required>
+    </div>
+    <div class="mb-3">
+        <label>Description</label>
+        <textarea name="description" class="form-control">{{ app.description }}</textarea>
+    </div>
+    <div class="mb-3">
+        <label>Note (optional)</label>
+        <textarea name="note" class="form-control"></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Update Application</button>
+</form>
+{% endblock %}

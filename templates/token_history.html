@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block title %}Token History{% endblock %}
+
+{% block content %}
+<h2>📜 Token History for: {{ token.token }}</h2>
+
+<p><strong>Application:</strong> {{ token.application.app_name }}</p>
+<p><strong>Status:</strong> {{ 'Revoked' if token.revoked else 'Active' }}</p>
+
+<a href="{{ url_for('admin.manage_tokens', app_id=request.args.get('app_id')) }}">⬅ Back to Tokens</a>
+
+
+{% if history_entries %}
+<table border="1" cellpadding="5" cellspacing="0">
+    <thead>
+        <tr>
+            <th>Timestamp</th>
+            <th>Action</th>
+            <th>Performed By</th>
+            <th>Description </th>
+            <th>Notes</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for h in history_entries %}
+        <tr>
+            <td>{{ h.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+            <td>{{ h.action }}</td>
+            <td>{{ h.admin.username if h.admin else 'Developer / Unknown' }}</td>
+            <td>{{ h.description if h.description else '-' }}</td>
+
+                          <td class="notes-cell">
+  {% if h.notes %}
+    <ul>
+      {% for note in h.notes.split(', ') %}
+        <li>{{ note }}</li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    -
+  {% endif %}
+</td>
+
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No history records found for this token.</p>
+{% endif %}
+
+{% endblock %}

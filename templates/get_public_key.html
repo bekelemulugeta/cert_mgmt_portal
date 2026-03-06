@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}Get Public Key{% endblock %}
+
+{% block content %}
+<h2>🗝️ Get Public Key</h2>
+<form method="POST">
+    <select name="app_id" class="form-select" required>
+        <option value="">-- Choose Application --</option>
+        {% for app in apps %}
+        <option value="{{ app.app_id }}" {% if selected_app and selected_app.app_id == app.app_id %}selected{% endif %}>
+            {{ app.app_name }}
+        </option>
+        {% endfor %}
+    </select>
+    <button class="btn btn-primary mt-2">Fetch Public Key</button>
+</form>
+
+{% if error %}
+    <p class="error">{{ error }}</p>
+{% endif %}
+
+
+{% if public_key %}
+<div class="card mt-3">
+    <h4>Public Key:</h4>
+    <pre>{{ public_key }}</pre>
+</div>
+{% endif %}
+{% endblock %}

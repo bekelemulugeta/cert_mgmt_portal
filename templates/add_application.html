@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block title %}Add Application{% endblock %}
+
+{% block content %}
+<h2>Add Application</h2>
+<form method="POST">
+    <div class="mb-3">
+        <label>Name</label>
+        <input type="text" name="name" class="form-control" required>
+    </div>
+    <div class="mb-3">
+        <label>Description</label>
+        <textarea name="description" class="form-control"></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Add Application</button>
+</form>
+{% endblock %}

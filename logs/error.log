@@ -1,0 +1,26 @@
+[2026-03-06 10:45:04 +0300] [13495] [INFO] Handling signal: int
+[2026-03-06 10:45:04 +0300] [13500] [INFO] Worker exiting (pid: 13500)
+[2026-03-06 10:45:04 +0300] [13499] [INFO] Worker exiting (pid: 13499)
+[2026-03-06 10:45:04 +0300] [13498] [INFO] Worker exiting (pid: 13498)
+[2026-03-06 10:45:04 +0300] [13502] [INFO] Worker exiting (pid: 13502)
+[2026-03-06 10:45:04 +0300] [13495] [INFO] Shutting down: Master
+[2026-03-06 10:45:11 +0300] [15251] [INFO] Starting gunicorn 23.0.0
+[2026-03-06 10:45:11 +0300] [15251] [INFO] Listening at: http://127.0.0.1:8000 (15251)
+[2026-03-06 10:45:11 +0300] [15251] [INFO] Using worker: sync
+[2026-03-06 10:45:11 +0300] [15252] [INFO] Booting worker with pid: 15252
+[2026-03-06 10:45:11 +0300] [15253] [INFO] Booting worker with pid: 15253
+[2026-03-06 10:45:11 +0300] [15254] [INFO] Booting worker with pid: 15254
+[2026-03-06 10:45:11 +0300] [15256] [INFO] Booting worker with pid: 15256
+[2026-03-06 10:49:28 +0300] [15251] [INFO] Handling signal: int
+[2026-03-06 10:49:28 +0300] [15253] [INFO] Worker exiting (pid: 15253)
+[2026-03-06 10:49:28 +0300] [15254] [INFO] Worker exiting (pid: 15254)
+[2026-03-06 10:49:28 +0300] [15256] [INFO] Worker exiting (pid: 15256)
+[2026-03-06 10:49:28 +0300] [15252] [INFO] Worker exiting (pid: 15252)
+[2026-03-06 10:49:28 +0300] [15251] [INFO] Shutting down: Master
+[2026-03-06 10:49:33 +0300] [15505] [INFO] Starting gunicorn 23.0.0
+[2026-03-06 10:49:33 +0300] [15505] [INFO] Listening at: http://127.0.0.1:8000 (15505)
+[2026-03-06 10:49:33 +0300] [15505] [INFO] Using worker: sync
+[2026-03-06 10:49:33 +0300] [15506] [INFO] Booting worker with pid: 15506
+[2026-03-06 10:49:33 +0300] [15508] [INFO] Booting worker with pid: 15508
+[2026-03-06 10:49:33 +0300] [15509] [INFO] Booting worker with pid: 15509
+[2026-03-06 10:49:33 +0300] [15510] [INFO] Booting worker with pid: 15510

@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}Vault: Delete Key{% endblock %}
+
+{% block content %}
+<h2>Delete Public Key from Vault</h2>
+
+{% if error %}
+    <p class="error">{{ error }}</p>
+{% endif %}
+{% if success %}
+    <p class="success">{{ success }}</p>
+{% endif %}
+
+<form method="POST">
+    <div class="mb-3">
+        <label for="app_id">Select Application</label>
+        <select name="app_id" id="app_id" class="form-control" required>
+            <option value="">-- Select Application --</option>
+            {% for app in apps %}
+                <option value="{{ app.app_id }}"
+                    {% if request.form.app_id == app.app_id|string %}selected{% endif %}>
+                    {{ app.app_name }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <button type="submit" class="btn btn-danger">Delete Public Key</button>
+</form>
+{% endblock %}

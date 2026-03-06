@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% block title %}API Token Management{% endblock %}
+
+{% block content %}
+<h2>🔑 API Token Management</h2>
+
+<form method="POST">
+    <label for="app_id">Select Application:</label>
+    <select name="app_id" id="app_id" required>
+        <option value="">-- Choose Application --</option>
+        {% for app in apps %}
+        <option value="{{ app.app_id }}" {% if selected_app and app.app_id == selected_app.app_id %}selected{% endif %}>
+            {{ app.app_name }}
+        </option>
+        {% endfor %}
+    </select>
+    <button type="submit">Load Tokens</button>
+</form>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <p style="color: {{ 'green' if category=='success' else 'red' }}">{{ message }}</p>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+{% if tokens %}
+
+
+<table border="1" cellpadding="5" cellspacing="0">
+    <thead>
+        <tr>
+             <th>ID</th>
+            <th>Token</th>
+            <th>Created At</th>
+            <th>Expires At</th>
+            <th>Status</th>
+            <th>Revoked By</th>
+            <th>Revoked Date</th>
+            <th>Created By</th>
+            <th>Whitelist</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for t in tokens %}
+        <tr>
+             <td>{{ t.id }}</td>
+            <td>{{ t.token }}</td>
+            <td>{{ t.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+            <td>{{ t.expires_at.strftime('%Y-%m-%d %H:%M:%S') if t.expires_at else 'Never' }}</td>
+            <td class="{{ 'revoked' if t.revoked else '' }}">
+                {{ 'Revoked' if t.revoked else 'Active' }}
+            </td>
+            <td>{{ t.revoked_by_admin.username if t.revoked_by_admin else '-' }}</td>
+            <td>{{ t.revoked_at.strftime('%Y-%m-%d %H:%M:%S') if t.revoked_at else '-' }}</td>
+            <td>{{ t.admin.username if t.admin else 'N/A' }}</td>
+
+            <!-- Whitelist -->
+            <td>
+                <form method="POST" action="{{ url_for('admin.add_ip_to_token', token_id=t.id) }}">
+                    <input type="text" name="ip_address" placeholder="Add IP" required>
+                    <button type="submit">Add</button>
+                </form>
+                {% if t.ip_whitelist %}
+                    <ul>
+                    {% for ip in t.ip_whitelist %}
+                        <li>
+                            {{ ip.allowed_ip }}
+                            <form method="POST" style="display:inline;" action="{{ url_for('admin.remove_ip_from_token', token_id=t.id) }}">
+                                <input type="hidden" name="ip_id" value="{{ ip.id }}">
+                                <button type="submit">Remove</button>
+                            </form>
+                        </li>
+                    {% endfor %}
+                    </ul>
+                {% else %}
+                    <small>No IPs added</small>
+                {% endif %}
+            </td>
+
+            <!-- Actions -->
+            <td>
+                {% if not t.revoked %}
+                <form method="POST" action="{{ url_for('admin.revoke_token', token_id=t.id) }}">
+                    <button type="submit">Revoke</button>
+                </form>
+                {% else %}
+                    -
+                {% endif %}
+                <br>
+              <a href="{{ url_for('admin.token_history_page', token_id=t.id, app_id=selected_app.app_id) }}">View History</a> |
+<a href="{{ url_for('admin.api_logs', token_id=t.id, app_id=selected_app.app_id) }}">Logs</a>
+
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+{% endblock %}

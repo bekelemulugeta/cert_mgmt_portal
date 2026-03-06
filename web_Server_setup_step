@@ -1,0 +1,311 @@
+from app_main import create_app
+
+app = create_app()
+
+
+"""
+
+For production, you generally do not use Flask’s built-in server. 
+Instead, you should use a production-ready WSGI server like Gunicorn or uWSGI. 
+But first, here’s how to modify your code to disable debug mode:
+if __name__ == '__main__':
+    app = create_app()
+    app.run(debug=False)  # Disable debug mode
+    
+Recommended production setup
+
+Install Gunicorn:gu
+
+---
+
+### 1. Create a `wsgi.py` file
+
+In your project root (same level as `app_main.py`), create `wsgi.py`:
+
+```python
+from app_main import create_app
+
+app = create_app()
+```
+
+This exposes your Flask app as `app`, which Gunicorn expects.
+
+---
+
+### 2. Run Gunicorn
+Perfect! To run your Flask app with Gunicorn **in the background**, you can use the `--daemon` flag. Here’s the full command for your setup:
+
+---
+
+### 1. Activate your virtual environment (if you have one)
+
+```bash
+source venv/bin/activate
+```
+
+---
+
+### 2. Run Gunicorn in the background
+
+```bash
+gunicorn --bind 0.0.0.0:8000 --workers 4 --daemon wsgi:app
+```
+
+Explanation:
+
+* `--bind 0.0.0.0:8000` → listen on all interfaces on port 8000.
+* `--workers 4` → number of worker processes (adjust depending on CPU cores).
+* `--daemon` → run in the background.
+* `wsgi:app` → points to your `app` object in `wsgi.py`.
+
+---
+
+### 3. Optional: Logging
+
+You can also specify log files for easier debugging:
+
+```bash
+gunicorn --bind 0.0.0.0:8000 --workers 4 --daemon --access-logfile access.log --error-logfile error.log wsgi:app
+
+or 
+
+create  gunicorn_config.py
+    
+    # gunicorn_config.py
+    bind = "10.10.24.188:8000"      # IP and port
+    workers = 4                # number of worker processes
+    accesslog = "logs/access.log"  # access log file
+    errorlog = "logs/error.log"    # error log file
+    loglevel = "info"          # log level (debug, info, warning, error, critical)
+    daemon = True              # run in background
+    timeout = 120              # request timeout in seconds
+    
+
+Then run with the file gunicorn_config
+gunicorn wsgi:app -c gunicorn_config.py
+```
+
+* `access.log` → logs requests.
+* `error.log` → logs errors.
+
+---
+
+### 4. Stopping Gunicorn
+
+To stop the background Gunicorn process:
+
+```bash
+pkill gunicorn
+```
+
+Or, if you want to be more specific:
+
+```bash
+pkill -f "gunicorn.*wsgi:app"
+
+```
+http://10.10.24.188:8000/admin/login
+```
+
+---
+o serve your Flask app over HTTPS with SSL, you generally use a reverse proxy like Nginx in front of Gunicorn and let Nginx handle SSL. This is the standard production approach.
+
+
+
+here is guicorn with nginx
+
+
+Got it. If you’re running **Gunicorn** behind **Nginx**, you can terminate HTTPS at Nginx using a **self-signed SSL certificate** and forward requests to Gunicorn over HTTP locally. This is very common for **internal or local production environments**. 🔐
+
+I'll walk you through the clean setup.
+
+---
+
+# 1️⃣ Create a Self-Signed SSL Certificate
+
+Run this on your server:
+
+```bash
+sudo mkdir -p /etc/nginx/ssl
+
+sudo openssl req -x509 -nodes -days 365 \
+-newkey rsa:2048 \
+-keyout /etc/nginx/ssl/selfsigned.key \
+-out /etc/nginx/ssl/selfsigned.crt
+```
+
+It will ask questions like:
+
+```
+Country Name
+State
+Organization
+Common Name
+```
+
+For **Common Name**, use your server name or IP:
+
+```
+Common Name: your_domain_or_ip
+```
+
+Example:
+
+```
+Common Name: 10.10.24.188
+```
+
+---
+
+# 2️⃣ Configure Nginx SSL Reverse Proxy
+
+Edit your nginx site config:
+
+```bash
+sudo nano /etc/nginx/sites-available/app
+```
+
+Example configuration:
+# ---------------------------
+# HTTP → HTTPS redirect
+# ---------------------------
+server {
+    listen 8080;  # you can use 80 if this is for wider use
+    server_name your_domain_or_ip;
+
+    return 301 https://$host$request_uri;
+}
+
+# ---------------------------
+# Gunicorn App (local production)
+# ---------------------------
+server {
+    listen 443 ssl;
+    server_name 10.10.24.188;
+
+    # SSL self-signed for local Gunicorn
+    ssl_certificate /etc/nginx/ssl/selfsigned.crt;
+    ssl_certificate_key /etc/nginx/ssl/selfsigned.key;
+
+    # SSL Settings
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers on;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 10m;
+
+    # Security Headers
+    add_header X-Frame-Options SAMEORIGIN always;
+    add_header X-Content-Type-Options nosniff always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+
+    location / {
+        proxy_pass http://127.0.0.1:8000;
+
+        # Preserve client info
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+
+
+# 3️⃣ Enable the Site
+
+```bash
+sudo ln -s /etc/nginx/sites-available/app /etc/nginx/sites-enabled/
+```
+
+Test configuration:
+
+```bash
+sudo nginx -t
+```
+
+Restart nginx:
+
+```bash
+sudo systemctl restart nginx
+```
+
+---
+
+# 4️⃣ Run Gunicorn
+
+Example:
+
+```bash
+gunicorn --bind 127.0.0.1:8000 app:app
+```
+
+or with workers:
+
+```bash
+gunicorn --workers 3 --bind 127.0.0.1:8000 app:app
+```
+
+---
+
+# 5️⃣ Access the Application
+
+Now open:
+
+```
+https://your_server_ip
+```
+
+Browser will show:
+
+⚠️ **Not Secure**
+
+because it's self-signed.
+
+Just **accept the certificate**.
+
+---
+
+✅ Architecture will look like this:
+
+```
+Client
+   │
+HTTPS (443)
+   │
+Nginx
+   │
+HTTP (127.0.0.1:8000)
+   │
+Gunicorn
+   │
+Flask / Django app
+```
+
+---
+
+💡 Since you work in **security and SIEM**, one more useful trick:
+You can **log real client IPs in Gunicorn** by enabling:
+
+# gunicorn_config.py
+
+bind = "127.0.0.1:8000"
+
+workers = 4
+worker_class = "sync"
+
+timeout = 120
+
+accesslog = "logs/access.log"
+errorlog = "logs/error.log"
+loglevel = "info"
+
+max_requests = 1000
+max_requests_jitter = 50
+
+forwarded_allow_ips = "*"
+
+daemon = False
+`
+
+"""

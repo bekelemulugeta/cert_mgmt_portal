@@ -1,0 +1,186 @@
+/home/hapihacker/PycharmProjects/PythonProject/cert_mgmt_portal/venv/bin/python /home/hapihacker/PycharmProjects/PythonProject/cert_mgmt_portal/print_schema.py
+
+==============================
+TABLE: admins
+==============================
+
+Columns:
+  admin_id  |  INTEGER  |  nullable=False  |  default=nextval('admins_admin_id_seq'::regclass)
+  username  |  VARCHAR(64)  |  nullable=False  |  default=None
+  password_hash  |  VARCHAR(256)  |  nullable=False  |  default=None
+  created_at  |  TIMESTAMP  |  nullable=True  |  default=now()
+
+Primary Key: ['admin_id']
+
+Foreign Keys:
+
+Indexes:
+  admins_username_key  columns=['username']
+
+==============================
+TABLE: api_tokens
+==============================
+
+Columns:
+  token  |  VARCHAR(128)  |  nullable=False  |  default=None
+  app_id  |  INTEGER  |  nullable=False  |  default=None
+  created_at  |  TIMESTAMP  |  nullable=True  |  default=now()
+  expires_at  |  TIMESTAMP  |  nullable=True  |  default=None
+  revoked  |  BOOLEAN  |  nullable=True  |  default=false
+  admin_id  |  INTEGER  |  nullable=True  |  default=None
+  id  |  INTEGER  |  nullable=False  |  default=nextval('api_tokens_id_seq'::regclass)
+  revoked_at  |  TIMESTAMP  |  nullable=True  |  default=None
+  revoked_by  |  INTEGER  |  nullable=True  |  default=None
+
+Primary Key: ['token']
+
+Foreign Keys:
+  ['admin_id']  →  admins.['admin_id']
+  ['app_id']  →  applications.['app_id']
+  ['revoked_by']  →  admins.['admin_id']
+
+Indexes:
+  api_tokens_id_key  columns=['id']
+
+==============================
+TABLE: applications
+==============================
+
+Columns:
+  app_id  |  INTEGER  |  nullable=False  |  default=nextval('applications_app_id_seq'::regclass)
+  app_name  |  VARCHAR(64)  |  nullable=False  |  default=None
+  created_at  |  TIMESTAMP  |  nullable=True  |  default=now()
+  description  |  TEXT  |  nullable=True  |  default=None
+  archived  |  BOOLEAN  |  nullable=True  |  default=false
+  archived_by  |  INTEGER  |  nullable=True  |  default=None
+  archived_at  |  TIMESTAMP  |  nullable=True  |  default=None
+  created_by  |  INTEGER  |  nullable=False  |  default=None
+  updated_by  |  INTEGER  |  nullable=True  |  default=None
+  updated_at  |  TIMESTAMP  |  nullable=True  |  default=None
+  notes  |  TEXT  |  nullable=True  |  default=None
+
+Primary Key: ['app_id']
+
+Foreign Keys:
+  ['archived_by']  →  admins.['admin_id']
+  ['created_by']  →  admins.['admin_id']
+  ['updated_by']  →  admins.['admin_id']
+  ['archived_by']  →  admins.['admin_id']
+  ['created_by']  →  admins.['admin_id']
+
+Indexes:
+  applications_app_name_key  columns=['app_name']
+
+==============================
+TABLE: secrets
+==============================
+
+Columns:
+  id  |  INTEGER  |  nullable=False  |  default=nextval('secrets_id_seq'::regclass)
+  app_id  |  INTEGER  |  nullable=False  |  default=None
+  created_at  |  TIMESTAMP  |  nullable=True  |  default=None
+  updated_at  |  TIMESTAMP  |  nullable=True  |  default=None
+  uploaded_by  |  INTEGER  |  nullable=True  |  default=None
+  deleted_by  |  INTEGER  |  nullable=True  |  default=None
+  deleted_at  |  TIMESTAMP  |  nullable=True  |  default=None
+  status  |  VARCHAR(20)  |  nullable=True  |  default=None
+  notes  |  TEXT  |  nullable=True  |  default=None
+  version  |  INTEGER  |  nullable=True  |  default=1
+  updated_by  |  INTEGER  |  nullable=True  |  default=None
+
+Primary Key: ['id']
+
+Foreign Keys:
+  ['app_id']  →  applications.['app_id']
+  ['deleted_by']  →  admins.['admin_id']
+  ['updated_by']  →  admins.['admin_id']
+  ['uploaded_by']  →  admins.['admin_id']
+
+Indexes:
+
+==============================
+TABLE: token_history
+==============================
+
+Columns:
+  id  |  INTEGER  |  nullable=False  |  default=nextval('token_history_id_seq'::regclass)
+  token_id  |  INTEGER  |  nullable=True  |  default=None
+  action  |  VARCHAR(100)  |  nullable=False  |  default=None
+  performed_by  |  INTEGER  |  nullable=True  |  default=None
+  description  |  TEXT  |  nullable=True  |  default=None
+  created_at  |  TIMESTAMP  |  nullable=True  |  default=now()
+  notes  |  TEXT  |  nullable=True  |  default=None
+
+Primary Key: ['id']
+
+Foreign Keys:
+  ['performed_by']  →  admins.['admin_id']
+  ['token_id']  →  api_tokens.['id']
+
+Indexes:
+
+==============================
+TABLE: token_ip_whitelist
+==============================
+
+Columns:
+  id  |  INTEGER  |  nullable=False  |  default=nextval('token_ip_whitelist_id_seq'::regclass)
+  token_id  |  INTEGER  |  nullable=True  |  default=None
+  allowed_ip  |  VARCHAR(50)  |  nullable=False  |  default=None
+  note  |  TEXT  |  nullable=True  |  default=None
+  created_at  |  TIMESTAMP  |  nullable=True  |  default=now()
+  added_by  |  INTEGER  |  nullable=True  |  default=None
+
+Primary Key: ['id']
+
+Foreign Keys:
+  ['added_by']  →  admins.['admin_id']
+  ['token_id']  →  api_tokens.['id']
+
+Indexes:
+
+==============================
+TABLE: api_audit_logs
+==============================
+
+Columns:
+  log_id  |  INTEGER  |  nullable=False  |  default=nextval('api_audit_logs_log_id_seq'::regclass)
+  token_id  |  INTEGER  |  nullable=True  |  default=None
+  app_id  |  INTEGER  |  nullable=True  |  default=None
+  action  |  VARCHAR(100)  |  nullable=False  |  default=None
+  endpoint  |  VARCHAR(250)  |  nullable=False  |  default=None
+  payload  |  TEXT  |  nullable=True  |  default=None
+  ip_address  |  VARCHAR(50)  |  nullable=True  |  default=None
+  status_code  |  INTEGER  |  nullable=True  |  default=None
+  created_at  |  TIMESTAMP  |  nullable=True  |  default=now()
+  notes  |  TEXT  |  nullable=True  |  default=None
+
+Primary Key: ['log_id']
+
+Foreign Keys:
+  ['app_id']  →  applications.['app_id']
+  ['token_id']  →  api_tokens.['id']
+
+Indexes:
+
+==============================
+TABLE: secret_logs
+==============================
+
+Columns:
+  id  |  INTEGER  |  nullable=False  |  default=nextval('secret_logs_id_seq'::regclass)
+  secret_id  |  INTEGER  |  nullable=False  |  default=None
+  admin_id  |  INTEGER  |  nullable=True  |  default=None
+  action  |  VARCHAR(50)  |  nullable=False  |  default=None
+  notes  |  TEXT  |  nullable=True  |  default=None
+  timestamp  |  TIMESTAMP  |  nullable=True  |  default=CURRENT_TIMESTAMP
+
+Primary Key: ['id']
+
+Foreign Keys:
+  ['admin_id']  →  admins.['admin_id']
+  ['secret_id']  →  secrets.['id']
+
+Indexes:
+
+Process finished with exit code 0

@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block title %}Invalid API Logs{% endblock %}
+
+{% block content %}
+<h2>⚠ Invalid / Suspicious API Logs</h2>
+
+<a href="{{ url_for('admin.all_api_logs') }}">⬅ Back to All Logs</a>
+
+<table border="1" cellpadding="6" cellspacing="0">
+    <thead>
+        <tr>
+            <th>Timestamp</th>
+            <th>Token ID</th>
+            <th>App ID</th>
+            <th>Action</th>
+            <th>Endpoint</th>
+
+            <th>IP Address</th>
+            <th>Status</th>
+            <th>Notes</th>
+            <th>Payload</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for log in logs %}
+        <tr style="background-color:#ffe6e6;">
+            <td>{{ log.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+            <td>{{ log.token_id }}</td>
+            <td>{{ log.app_id }}</td>
+            <td>{{ log.action }}</td>
+            <td>{{ log.endpoint }}</td>
+
+            <td>{{ log.ip_address }}</td>
+            <td>{{ log.status_code }}</td>
+            <td>{{ log.notes }}</td>
+             <td><pre>{{ log.payload }}</pre></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

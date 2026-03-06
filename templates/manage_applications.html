@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% block title %}Manage Applications{% endblock %}
+
+{% block content %}
+<h2>Manage Applications</h2>
+<a href="{{ url_for('admin.add_application') }}" class="btn btn-success mb-3">Add New Application</a>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Name</th>
+                <th>Description</th>
+                <th>Created By</th>
+                <th>Created At</th>
+                  <th>Archived BY</th>
+                <th>Status</th>
+                <th>Archived At</th>
+                <th>Updated By</th>
+                <th>Updated At</th>
+                <th>Actions</th>
+            <th>Notes</th>
+
+        </tr>
+    </thead>
+    <tbody>
+    {% for app in apps %}
+        <tr>
+          <td>{{ app.app_name }}</td>
+                <td>{{ app.description or '-' }}</td>
+                <td>{{ app.created_by_admin.username if app.created_by_admin else '-' }}</td>
+
+                <td>{{ app.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                <td>{{ app.archived_by_admin.username if app.archived_by_admin else '-' }}</td>
+                <td class="{{ 'archived' if app.archived else '' }}">
+                    {{ 'Archived' if app.archived else 'Active' }}
+                </td>
+                <td>{{ app.archived_at.strftime('%Y-%m-%d %H:%M:%S') if app.archived_at else '-' }}</td>
+                <td>{{ app.updated_by_admin.username if app.updated_by_admin else '-' }}</td>
+                <td>{{ app.updated_at.strftime('%Y-%m-%d %H:%M:%S') if app.updated_at else '-' }}</td>
+
+            <td>
+                <a href="{{ url_for('admin.edit_application_page', app_id=app.app_id) }}" class="btn btn-primary btn-sm">Edit</a>
+                {% if not app.archived %}
+                <form method="POST" action="{{ url_for('admin.archive_application', app_id=app.app_id) }}" style="display:inline;">
+                    <button class="btn btn-warning btn-sm">Archive</button>
+                </form>
+                {% else %}
+                <form method="POST" action="{{ url_for('admin.restore_application', app_id=app.app_id) }}" style="display:inline;">
+                    <button class="btn btn-success btn-sm">Restore</button>
+                </form>
+                {% endif %}
+            </td>
+
+
+               <td class="notes-cell">
+  {% if app.notes %}
+    <ul>
+      {% for note in app.notes.split(', ') %}
+        <li>{{ note }}</li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    -
+  {% endif %}
+</td>
+
+        </tr>
+
+
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% block title %}All API Logs{% endblock %}
+
+{% block content %}
+<h2>📘 All API Logs</h2>
+
+<a href="{{ url_for('admin.invalid_api_logs') }}">⚠ View Invalid / Suspicious Logs</a>
+
+{% if logs %}
+<div style="overflow-x:auto; margin-top: 20px;">
+    <table class="logs-table">
+        <thead>
+            <tr>
+                <th>Timestamp</th>
+                <th>Token ID</th>
+                <th>App ID</th>
+                <th>Action</th>
+                <th>Endpoint</th>
+                <th>IP</th>
+                <th>Status</th>
+                <th>Notes</th>
+                <th>Payload</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for log in logs %}
+            <tr>
+                <td>{{ log.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                <td>{{ log.token_id }}</td>
+                <td>{{ log.app_id }}</td>
+                <td>{{ log.action }}</td>
+                <td>{{ log.endpoint }}</td>
+                <td>{{ log.ip_address }}</td>
+                <td>{{ log.status_code }}</td>
+                <td>{{ log.notes }}</td>
+                <td>
+                    <pre style="white-space: pre-wrap; word-wrap: break-word; max-width: 400px;">
+                        {% if log.payload|length > 200 %}
+                            {{ log.payload[:200] }}...
+                            <a href="#" onclick="this.nextElementSibling.style.display='block';this.style.display='none';return false;">Show more</a>
+                            <span style="display:none;">{{ log.payload[200:] }}</span>
+                        {% else %}
+                            {{ log.payload }}
+                        {% endif %}
+                    </pre>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Optional Pagination -->
+<div class="pagination" style="margin-top: 15px;">
+    {% if pagination.has_prev %}
+        <a href="{{ url_for('admin.all_api_logs', page=pagination.prev_num) }}">&laquo; Prev</a>
+    {% endif %}
+    <span>Page {{ pagination.page }} of {{ pagination.pages }}</span>
+    {% if pagination.has_next %}
+        <a href="{{ url_for('admin.all_api_logs', page=pagination.next_num) }}">Next &raquo;</a>
+    {% endif %}
+</div>
+
+{% else %}
+<p>No API logs found.</p>
+{% endif %}
+
+<style>
+.logs-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.logs-table th, .logs-table td {
+    padding: 8px;
+    text-align: left;
+    border: 1px solid #ddd;
+}
+
+.logs-table th {
+    background-color: #f4f4f4;
+}
+
+.logs-table pre {
+    margin: 0;
+}
+
+@media screen and (max-width: 768px) {
+    .logs-table th, .logs-table td {
+        font-size: 14px;
+        padding: 6px;
+    }
+    .logs-table pre {
+        max-width: 250px;
+    }
+}
+
+.pagination a {
+    padding: 5px 10px;
+    margin: 0 5px;
+    text-decoration: none;
+    background-color: #007BFF;
+    color: white;
+    border-radius: 4px;
+}
+
+.pagination span {
+    margin: 0 5px;
+}
+</style>
+
+{% endblock %}

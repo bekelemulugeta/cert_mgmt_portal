@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block title %}API Logs{% endblock %}
+
+{% block content %}
+<h2>📘 API Logs for Token: {{ token.token }}</h2>
+
+<p><strong>Application:</strong> {{ token.application.app_name }}</p>
+<p><strong>Status:</strong> {{ 'Revoked' if token.revoked else 'Active' }}</p>
+
+<a href="{{ url_for('admin.manage_tokens', app_id=request.args.get('app_id')) }}">⬅ Back to Tokens</a>
+
+{% if logs %}
+<table border="1" cellpadding="6" cellspacing="0">
+    <thead>
+        <tr>
+            <th>Timestamp</th>
+            <th>Action</th>
+            <th>Endpoint</th>
+            <th>IP Address</th>
+            <th>Status Code</th>
+            <th>Notes</th>
+            <th>Payload</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for log in logs %}
+        <tr>
+            <td>{{ log.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+            <td>{{ log.action }}</td>
+            <td>{{ log.endpoint }}</td>
+
+            <td>{{ log.ip_address }}</td>
+            <td>{{ log.status_code }}</td>
+            <td>{{ log.notes }}</td>
+            <td><pre>{{ log.payload }}</pre></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No API logs found for this token.</p>
+{% endif %}
+
+{% endblock %}

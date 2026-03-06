@@ -1,0 +1,190 @@
+{% extends 'base.html' %}
+{% block title %}Developer Tools{% endblock %}
+
+{% block content %}
+<h2>🔧 Developer Tools</h2>
+
+<form method="POST" action="{{ url_for('admin.developer_tools') }}" id="appForm">
+    <div class="mb-3">
+        <label>Select Application:</label>
+        <select name="app_id" id="app_id" class="form-select" required onchange="document.getElementById('appForm').submit()">
+            <option value="">-- Choose Application --</option>
+            {% for app in apps %}
+            <option value="{{ app.app_id }}" {% if selected_app and app.app_id == selected_app.app_id %}selected{% endif %}>
+                {{ app.app_name }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+</form>
+
+{% if selected_app %}
+<form method="POST" action="{{ url_for('admin.developer_tools') }}">
+    <input type="hidden" name="app_id" value="{{ selected_app.app_id }}">
+
+    <div class="mb-3">
+        <label>Select Token:</label>
+        <select name="selected_token" id="selected_token" class="form-select" onchange="toggleTokenInput()">
+            {% for t in tokens %}
+            <option value="{{ t.token }}">{{ t.token }}</option>
+            {% endfor %}
+            <option value="other">Other (enter manually)</option>
+        </select>
+    </div>
+
+    <div class="mb-3" id="customTokenDiv" style="display:none;">
+        <label>Enter Token Manually:</label>
+        <input type="text" name="manual_token" class="form-control" placeholder="Enter custom token">
+    </div>
+
+    <button type="submit" class="btn btn-primary">Use Token</button>
+</form>
+
+{% endif %}
+
+<script>
+function toggleTokenInput() {
+    const dropdown = document.getElementById("selected_token");
+    const box = document.getElementById("customTokenDiv");
+    box.style.display = dropdown.value === "other" ? "block" : "none";
+}
+</script>
+
+{% if error %}
+<div class="alert alert-danger">{{ error }}</div>
+{% endif %}
+{% if message %}
+<div class="alert alert-success">{{ message }}</div>
+{% endif %}
+
+{% if selected_app %}
+<div class="card mb-3">
+    <h3>Application: {{ selected_app.app_name }}</h3>
+    <p><b>Token:</b> <code>{{ api_token if api_token else "No token selected" }}</code></p>
+
+    <!-- SIGN JWT -->
+    <h4>Test JWT Signing</h4>
+    <textarea id="payload" rows="5" class="form-control mb-2" placeholder='{"user":"Alice","role":"developer"}'></textarea>
+    <button type="button" class="btn btn-primary mb-2" onclick="signJWT()">Sign JWT</button>
+    <pre id="jwtResult"></pre>
+
+    <!-- SIGN DATA -->
+    <h4>Test Data Signing</h4>
+    <input id="message" type="text" class="form-control mb-2" placeholder="Enter message to sign">
+    <button class="btn btn-primary mb-2" onclick="signData()">Sign Data</button>
+    <pre id="dataResult"></pre>
+
+    <!-- PUBLIC KEY -->
+    <h4>Get Public Key</h4>
+    <button type="button" class="btn btn-secondary mb-2" onclick="getPublicKey()">Fetch Public Key</button>
+    <pre id="pubKeyResult"></pre>
+
+    <!-- VERIFY SIGNATURE -->
+    <h4>Verify Signature</h4>
+    <input id="verify_message" class="form-control mb-2" placeholder="Message used during signing">
+    <input id="verify_signature" class="form-control mb-2" placeholder="Signature (hex format)">
+    <button type="button" class="btn btn-secondary mb-2" onclick="verifySignature()">Verify Signature</button>
+    <pre id="verifyResult"></pre>
+
+    <!-- VERIFY JWT -->
+    <h4>Verify JWT</h4>
+    <textarea id="verify_jwt_token" rows="4" class="form-control mb-2" placeholder="Paste JWT here"></textarea>
+    <button type="button" class="btn btn-secondary mb-2" onclick="verifyJWT()">Verify JWT</button>
+    <pre id="verifyJWTResult"></pre>
+</div>
+{% endif %}
+
+<script>
+const token = "{{ api_token }}";
+
+// --- universal helper for output ---
+function show(el, value) {
+    document.getElementById(el).textContent = JSON.stringify(value, null, 2);
+}
+
+// --- universal helper for fetch calls ---
+async function apiPost(path, body) {
+    try {
+        const res = await fetch(path, {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(body)
+        });
+        return await res.json();
+    } catch (err) {
+        return { error: "Network or invalid JSON response", details: err.toString() };
+    }
+}
+
+
+// --- internal helper to fetch public key ---
+async function fetchPublicKey() {
+    const data = await apiPost("/api/get_public_key", {token});
+    return data?.data?.public_key || "";
+}
+
+
+// ------------------- SIGN JWT -------------------
+async function signJWT() {
+    const raw = document.getElementById("payload").value;
+
+    // Send raw string directly; backend will handle parsing and logging errors
+    const data = await apiPost("/api/sign_jwt", { token, payload: raw });
+
+    show("jwtResult", data);
+}
+
+
+
+// ------------------- SIGN DATA -------------------
+async function signData() {
+    const message = document.getElementById("message").value.trim();
+
+    // Prevent sending empty message
+    if (!message) {
+        show("dataResult", { error: "Please enter a message to sign" });
+        return;
+    }
+
+    // Send the message to the backend
+    const data = await apiPost("/api/sign_data", { token, message });
+
+    // Display the result
+    show("dataResult", data);
+}
+
+
+// ------------------- GET PUBLIC KEY -------------------
+async function getPublicKey() {
+    const data = await apiPost("/api/get_public_key", {token});
+    show("pubKeyResult", data);
+}
+
+// ------------------- VERIFY SIGNATURE -------------------
+async function verifySignature() {
+    const raw = document.getElementById("verify_message").value;
+    let message;
+    try { message = JSON.parse(raw); }
+    catch { message = isNaN(raw) ? raw : Number(raw); }
+
+
+
+    const signature = document.getElementById("verify_signature").value.trim();
+    const public_key = await fetchPublicKey();
+
+    const data = await apiPost("/api/verify_signature", {
+        token, message, signature, public_key
+    });
+    show("verifyResult", data);
+}
+
+// ------------------- VERIFY JWT -------------------
+async function verifyJWT() {
+    const jwt = document.getElementById("verify_jwt_token").value.trim();
+    const public_key = await fetchPublicKey();
+
+    const data = await apiPost("/api/verify_jwt", {token, jwt, public_key});
+    show("verifyJWTResult", data);
+}
+</script>
+{% endblock %}

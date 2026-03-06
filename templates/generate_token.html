@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block title %}Generate API Token{% endblock %}
+
+{% block content %}
+<h2>Generate API Token</h2>
+
+{% if error %}
+<div class="alert alert-danger">{{ error }}</div>
+{% endif %}
+{% if success %}
+<div class="alert alert-success">{{ success }}</div>
+{% endif %}
+
+<form method="POST">
+    <div class="mb-3">
+        <label>Application</label>
+        <select name="app_name" class="form-select">
+            {% for app in apps %}
+            <option value="{{ app.app_name }}">{{ app.app_name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="mb-3">
+        <label>Expires In (Days)</label>
+        <input type="number" name="expires_in_days" class="form-control" value="30">
+        <div class="mb-3">
+    <label>Allowed IPs (comma-separated,leave blank if you want to add later from manage token page)</label>
+    <input type="text" name="allowed_ips" class="form-control" placeholder="e.g., 192.168.1.1, 10.0.0.5">
+</div>
+
+    </div>
+    <button type="submit" class="btn btn-primary">Generate Token</button>
+</form>
+{% endblock %}
